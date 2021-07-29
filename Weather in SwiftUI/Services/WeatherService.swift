@@ -9,7 +9,9 @@ import Foundation
 
 class WeatherService {
     
-    func getWeather(city: String, completion: @escaping (Result<Weather, Error>)->() ) {
+    let urlSession = URLSession.shared
+    
+    func getWeather(city: String, completion: @escaping (Result<WeatherResponse, Error>)->() ) {
         guard let url = URL(string: "https://api.openweathermap.org/data/2.5/weather?q=\(city)&appid=\(APIKEY)&units=metric") else {
             DispatchQueue.main.async {
                 completion(.failure(URLError(URLError.Code.badURL)))
@@ -17,7 +19,7 @@ class WeatherService {
             return
         }
         
-        URLSession.shared.dataTask(with: url) { data, response, error in
+        urlSession.dataTask(with: url) { data, response, error in
             guard let data = data, error == nil else {
                 DispatchQueue.main.async {
                     completion(.failure(error ?? URLError(URLError.Code.cannotDecodeRawData)))
@@ -26,7 +28,7 @@ class WeatherService {
             }
 
             let weather = Result {
-                try JSONDecoder().decode(WeatherResponse.self, from: data).main
+                try JSONDecoder().decode(WeatherResponse.self, from: data)
             }
             
             DispatchQueue.main.async {

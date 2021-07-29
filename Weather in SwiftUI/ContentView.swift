@@ -6,44 +6,38 @@
 //
 
 import SwiftUI
+import Combine
 
 struct ContentView: View {
     
-    @State private var temp = ""
-    @State private var humidity = ""
-    @State private var color = Color.black
+    @ObservedObject private var vm: WeatherViewModel
+    
+    init() {
+        self.vm = WeatherViewModel()
+    }
     
     var body: some View {
         VStack {
-            HStack {
-                Text("Tempurature: ")
-                Text(temp)
-                    .foregroundColor(color)
-            }.padding()
             
-            HStack {
-                Text("Humidity: ")
-                Text(humidity)
-                    .foregroundColor(color)
-            }.padding()
+            TextField("Enter City Name", text: $vm.cityName)
+                .onReceive(
+                    vm.$cityName
+                        .debounce(for: .seconds(1), scheduler: DispatchQueue.main), perform: { _ in
+                            self.vm.search()
+                })
+                .font(.custom("Hevalica", size: 35))
+                .padding()
             
-            Button("Start") {
-                self.getWeather(city: "Shiraz")
+            Button("Get \(vm.cityName) Weather") {
+                self.vm.search()
             }
-        }
-    }
-    
-    func getWeather(city: String) {
-        WeatherService().getWeather(city: "Shiraz") { res in
-            switch res {
-            case .failure(let error):
-                self.temp = error.localizedDescription
-                self.humidity = error.localizedDescription
-                self.color = .red
-            case .success(let weather):
-                self.temp = "\(weather.temp ?? 0)"
-                self.humidity = "\(weather.humidity ?? 0)"
-                self.color = .green
+            
+            HStack {
+                Text(vm.temperature)
+                    .font(.custom("Hevalica", size: 55))
+                    .offset(x: 5, y: 20)
+                    .foregroundColor(.gray)
+                Text(vm.name).padding()
             }
         }
     }

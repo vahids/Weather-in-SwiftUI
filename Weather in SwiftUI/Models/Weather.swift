@@ -8,7 +8,8 @@
 import Foundation
 
 struct WeatherResponse: Decodable {
-    var main: Weather
+    var main: Weather?
+    var name: String?
 }
 
 struct Weather: Decodable {
